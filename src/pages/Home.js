@@ -1,19 +1,41 @@
-import { useSearchParams } from "react-router-dom";
 import Header from "../component/Header";
-import Editor from "../component/Editor";
+import Button from "../component/Button";
+import { useState, useContext ,useEffect} from "react";
+import {DiaryStateContext} from "../App";
+import{getMonthRamgeByDate} from "../utill";
+import DiaryList from "../component/DiaryList";
 
 const Home = () => {
-    //const [searchParams,setsearchParams] =useSearchParams();
-    //console.log(searchParams.get('sort'));
+    const data = useContext(DiaryStateContext);
+    const [privotDate,setPrivotDate] =useState(new Date());
+    const [filteredData , setFilterdData] = useState([]);
+    const onInMonth = ()=>{
+        setPrivotDate(new Date(privotDate.getFullYear(),privotDate.getMonth()+1));
+    }
+    const onDeMonth = ()=>{
+        setPrivotDate(new Date(privotDate.getFullYear(),privotDate.getMonth()-1));
+    }
+    const headerTitle = `
+    ${privotDate.getFullYear()}년 ${privotDate.getMonth()+1}월
+    `
+    useEffect(()=>{
+        if(data.length >=1){
+            const {beginTimeStamp,endTimeStamp} = getMonthRamgeByDate(privotDate);
+            setFilterdData(
+                data.filter((item) =>beginTimeStamp <= item.date && item.date <= endTimeStamp)
+            )
+        }else{
+            setFilterdData([])
+        }
+    },[data,privotDate])
     return (
     <div>
-        <Editor
-            initData={{
-                date: new Date().getTime(),
-                emotionId :1,
-                content:'이전에 작성했던 일기'
-            }}
-            onSubmit={() => alert('작성완료 버튼을 클릭') } />
+       <Header 
+        title={headerTitle}
+        leftChild={<Button text={'<'} onClick={onDeMonth}/>}
+        rightChild={<Button text={'>'} onClick={onInMonth}/>}
+       />
+       <DiaryList data={filteredData}/>
     </div>
     );
 }
